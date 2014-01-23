@@ -145,7 +145,7 @@
 	var camera = new THREE.PerspectiveCamera(45,width / height, 1,1000);
 	camera.position.set(500,500,500);
 	//camera.lookAt(cube.position);
-	//代わりにここ↑をいじる・・・のもやめる.controlがあればok
+	
 	//rendering
 	var renderer =new THREE.WebGLRenderer();
 	renderer.setSize(width,height);
@@ -154,12 +154,6 @@
 	document.getElementById('stage').appendChild(renderer.domElement);
 	//control
 	var controls = new THREE.OrbitControls(camera,renderer.domElement);
-
-	///多分これでおｋ
-	//renderer.render(scene,camera);//ここ以外不要
-
-	//今回静止画の予定なのでコントロールはいらないけど
-	//こいつらを削除
 
 	function render(){
 
@@ -170,8 +164,8 @@
 	cube.position.x = Math.sin(new Date().getTime() / 200) * 100;
 	cube.position.z = Math.cos(new Date().getTime() / 200) * 100;
 	*/
-	renderer.render(scene,camera);//ここ以外不要
-	controls.update();//ここも必要だった！
+	renderer.render(scene,camera);
+	controls.update();
 	}
 	render();
 
