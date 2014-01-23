@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+	<head>
+		<meta charset="SJIS">
+		<title>Three.jsの練習</title>
+	</head>
+	<body>
+		<div id="stage"></div>	
+		<script src="three.min.js"></script>
+		<script src="OrbitControls.js"></script>
+<script>
+
+(function(){
+	var width = 500,
+	height = 300;
+	//scene
+	var scene = new THREE.Scene();
+
+	//mesh
+	var x_geometry = new THREE.CubeGeometry(50,10,10);
+	var y_geometry = new THREE.CubeGeometry(10,50,10);
+	var z_geometry = new THREE.CubeGeometry(10,10,200);
+	//柱をたてて結び目をつくる予定
+
+	var material = new THREE.MeshLambertMaterial({color:"green"});
+	
+	function hasira(x,y,z,type){
+		//typeに"x","y","z"で場合分けしたいswitchをつかおう
+		switch (type){
+			case "x":
+			var cube = new THREE.Mesh(x_geometry,material);
+			break;
+			case "y":
+			var cube = new THREE.Mesh(y_geometry,material);
+			break;
+			case "z":
+			var cube = new THREE.Mesh(z_geometry,material);
+			break;
+		}
+		cube.position.set(x-100,y-100,z);
+		cube.castShadow = true;
+		scene.add(cube);
+	}
+	var size = 8;
+	var ar = [[1,0,0,0,-1,0,0,0],
+	[0,0,0,1,0,0,-1,0],
+	[0,0,-1,0,1,0,0,0],
+	[0,0,0,0,0,1,0,-1],
+	[0,0,0,-1,0,0,1,0],
+	[0,1,0,0,0,-1,0,0],
+	[-1,0,1,0,0,0,0,0],
+	[0,-1,0,0,0,0,0,1]];
+	/*
+	var size = 4;
+	var ar = [[0,-1,0,1],
+	[-1,0,1,0],
+	[0,1,0,-1],
+	[1,0,-1,0]]*/
+	//↑Hopf link･･･なんか微妙w
+	//一応ここをいじるだけでどうにかなるようにはなった
+
+	var tate = new Array(size);
+	var yoko = new Array(size);
+	for (var i=0;i<size;i++){
+		tate[i] = new Array(size);
+		yoko[i] = new Array(size);
+	}
+
+	for (var i=0;i<size;i++){
+		for (var j=0;j<size;j++){
+			tate[i][j] = 0;
+			yoko[i][j] = 0;
+		}
+	}
+	for(var i = 0 ; i < size ; i++){
+		var flag = 0;
+		for(var j = 0 ; j < size ; j++){
+			if (ar[i][j] != 0){
+				flag = 1 - flag ;
+			}
+			if (flag == 1){
+				tate[i][j] = 1;
+			}
+		}
+	}
+	//console.log(tate)
+
+	for(var i = 0 ; i < size ; i++){
+		var flag = 0;
+		for(var j = 0 ; j < size ; j++){
+			if (ar[j][i] != 0){
+				flag = 1 - flag ;
+			}
+			if (flag == 1){
+				yoko[j][i] = 1;
+			}
+		}
+	}
+
+///z方向の柱を書く
+	for(var i = 0 ; i < size ; i++){
+		for(var j = 0 ; j < size ; j++){
+			if (ar[i][j] != 0){
+				hasira(50*i,50*j,0,"z");
+			}
+		}
+	}
+	//縦横を書く
+	//横
+	for(var i = 0 ; i < size ; i++){
+		for(var j = 0 ; j < size ; j++){
+			if (yoko[i][j] != 0){
+				hasira(50*i+25,50*j,-100,"x");
+			}
+		}
+	}
+	//縦
+	for(var i = 0 ; i < size ; i++){
+		for(var j = 0 ; j < size ; j++){
+			if (tate[i][j] != 0){
+				hasira(50*i,50*j+25,100,"y");
+			}
+		}
+	}
+	
+	//helper
+/*
+	var axis = new THREE.AxisHelper(1000);
+	axis.position.set(0,0,0);
+	scene.add(axis);
+*/
+	//light
+	var light = new THREE.DirectionalLight(0xffffff,1);
+	light.position.set(0,100,30);
+	light.castShadow = true;
+	scene.add(light);
+
+	var ambient = new THREE.AmbientLight(0x550000,1);
+	ambient.position.set(0,100,30);
+	scene.add(ambient)
+
+	//視点と描画の設定をして完成する
+	//camera
+	var camera = new THREE.PerspectiveCamera(45,width / height, 1,1000);
+	camera.position.set(500,500,500);
+	//camera.lookAt(cube.position);
+	//代わりにここ↑をいじる・・・のもやめる.controlがあればok
+	//rendering
+	var renderer =new THREE.WebGLRenderer();
+	renderer.setSize(width,height);
+	renderer.setClearColor(0xeeeeee,1);
+	renderer.shadowMapEnabled =true;
+	document.getElementById('stage').appendChild(renderer.domElement);
+	//control
+	var controls = new THREE.OrbitControls(camera,renderer.domElement);
+
+	///多分これでおｋ
+	//renderer.render(scene,camera);//ここ以外不要
+
+	//今回静止画の予定なのでコントロールはいらないけど
+	//こいつらを削除
+
+	function render(){
+
+	requestAnimationFrame(render);
+	/*cube.rotation.x += 1 * Math.PI / 180;
+	cube.rotation.y += 1 * Math.PI / 180;
+	cube.rotation.z += 1 * Math.PI / 180;
+	cube.position.x = Math.sin(new Date().getTime() / 200) * 100;
+	cube.position.z = Math.cos(new Date().getTime() / 200) * 100;
+	*/
+	renderer.render(scene,camera);//ここ以外不要
+	controls.update();//ここも必要だった！
+	}
+	render();
+
+	})()
+	/*
+	Scene
+	-Mesh
+	--Geometry
+	--Material
+	-Light
+	Camera
+	*/			
+		</script>
+	</body>
+</html>
